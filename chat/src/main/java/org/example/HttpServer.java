@@ -1,16 +1,20 @@
 package org.example;
 
+import netscape.javascript.JSObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+
 public class HttpServer {
-    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(35000);
@@ -50,6 +54,12 @@ public class HttpServer {
                     String className = data[1].split(",")[0].split("\\[")[0].replace("//comand=invoke(", "");
                     String method = data[1].split(",")[1].replace(")", "");
                     outputLine += executionMethod(className, method);
+            } else if (execution.equals("unaryInvoke")) {
+                String className = data[1].split(",")[0].split("\\[")[0].replace("//comand=invoke(", "");
+                String method = data[1].split(",")[1];
+                String type = data[1].split(",")[2];
+                String param = data[1].split(",")[3].replace(")", "");
+                System.out.println(param);
             }
             System.out.println(outputLine);
             out.println(outputLine);
@@ -74,11 +84,20 @@ public class HttpServer {
         return response.toString();
     }
 
-    public static String executionMethod(String className, String methodName) throws ClassNotFoundException, NoSuchMethodException {
+    public static String executionMethod(String className, String methodName) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Class c = Class.forName(className);
         System.out.println(methodName);
-        String result = String.valueOf(c.getMethod(methodName, null));
+        String result = String.valueOf(c.getMethod(methodName).invoke(null));
         return result;
+    }
+
+    public static String executionMethod(String className, String methodName, String type, String param) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Class c = Class.forName(className);
+        System.out.println(methodName);
+        String[] params = new String[1];
+        params[1] = type;
+        //String result = String.valueOf(c.getMethod().invoke(null));
+        return "";
     }
 
 }
