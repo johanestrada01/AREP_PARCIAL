@@ -22,7 +22,8 @@ public class HttpConnectionExample {
         //The following invocation perform the connection implicitly before getting the code
         int responseCode = con.getResponseCode();
         System.out.println("GET Response Code :: " + responseCode);
-
+        String result = "";
+        boolean isResult = true;
         if (responseCode == HttpURLConnection.HTTP_OK) { // success
             BufferedReader in = new BufferedReader(new InputStreamReader(
                     con.getInputStream()));
@@ -30,7 +31,12 @@ public class HttpConnectionExample {
             StringBuffer response = new StringBuffer();
 
             while ((inputLine = in.readLine()) != null) {
+                if(isResult){
+                    result = inputLine;
+                    isResult = false;
+                }
                 response.append(inputLine);
+                System.out.println(inputLine);
             }
             in.close();
 
@@ -40,7 +46,7 @@ public class HttpConnectionExample {
             System.out.println("GET request not worked");
         }
         System.out.println("GET DONE");
-        return con.getContent().toString();
+        return result;
     }
 
 }

@@ -4,11 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HttpServer {
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(35000);
@@ -40,11 +42,14 @@ public class HttpServer {
             }
             outputLine = "HTTP/1.1 200 OK\r\n"
                     + "Content-Type: text/html\r\n"
-                    + "\r\n"
-                    + "<!DOCTYPE html>";
+                    + "\r\n";
             String execution = data[1].replace("/", "").split("\\(")[0].replace("comand=", "");
             if(execution.equals("Class")){
                 outputLine+=executionClass(data[1].split("\\[")[1].split("]")[0]);
+            } else if (execution.equals("invoke")) {
+                    String className = data[1].split(",")[0].split("\\[")[0].replace("//comand=invoke(", "");
+                    String method = data[1].split(",")[1].replace(")", "");
+                    outputLine += executionMethod(className, method);
             }
             System.out.println(outputLine);
             out.println(outputLine);
@@ -56,7 +61,24 @@ public class HttpServer {
 
     public static String executionClass(String className) throws ClassNotFoundException {
         System.out.println(className);
-        return Class.forName(className).getName();
+        StringBuilder response = new StringBuilder("");
+        Method[] methods = Class.forName(className).getDeclaredMethods();
+        for(Method m : methods){
+            response.append(m.getName() + " ");
+        }
+        response.append("\n");
+        Field[] fields = Class.forName(className).getDeclaredFields();
+        for(Field f : fields){
+            response.append(f.getName()).append(" ");
+        }
+        return response.toString();
+    }
+
+    public static String executionMethod(String className, String methodName) throws ClassNotFoundException, NoSuchMethodException {
+        Class c = Class.forName(className);
+        System.out.println(methodName);
+        String result = String.valueOf(c.getMethod(methodName, null));
+        return result;
     }
 
 }
